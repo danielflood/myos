@@ -1,0 +1,15 @@
+# Build directory
+build/
+
+# ISO files
+*.iso
+
+# Object files
+*.o
+
+# Backup files
+*~
+
+# IDE/Editor specific
+.vscode/
+.idea/
