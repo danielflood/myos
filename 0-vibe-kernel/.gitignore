@@ -2,7 +2,7 @@
 build/
 
 # Kernel
-*/iso/boot/kernel
+/iso/boot/kernel
 
 # ISO files
 *.iso
