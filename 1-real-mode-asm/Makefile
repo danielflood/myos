@@ -1,4 +1,5 @@
-
+all: build run
+	
 build:
 	nasm -f bin boot.asm -o boot.img
 
