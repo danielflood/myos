@@ -59,13 +59,35 @@ print_array:
     mov ah, 0x07         ; Light grey on black?
     mov cx, 20
 
-.print_char:
+.print_hex:
     lodsb                 ; Load next byte from [SI] into AL
+    mov dl, al
+    shr dl, 4
+    cmp dl, 10
+    jl .digit
+    add dl, 55
+    jmp .print
+    .digit:
+    add dl, 48
+    .print:
+    mov al, dl
     mov word [es:bx], ax
     add bx, 2
+    mov dl, al
+    and dl, 0x0F
+    cmp dl, 10
+    jl .digits
+    add dl, 55
+    jmp .prints
+    .digits:
+    add dl, 48
+    .prints:
+    mov al, dl
+    mov word [es:bx], ax
+    add bx, 2 
     dec cx
     or cx, cx
-    jnz .print_char
+    jnz .print_hex
     ret
 
 
