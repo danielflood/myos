@@ -2,6 +2,9 @@
 org 0x7C00
 
 start:
+    ;Clear Screen
+    call clear_screen
+    
     ;Setup the stack
     mov ax, 0x0000       ; Setup stack segment
     mov ss, ax           ; SS == Stack Segment register
@@ -89,6 +92,60 @@ print_memory_map_entry:
 .print_char:
     mov word [es:bx], dx
     add bx, 2 
+    ret
+
+clear_screen:
+    mov ax, 0xB800       ; VGA Memory first 16bits
+    mov es, ax           ; Have to load into the Extra Segment register (ES) from a general purpose register e.g. AX   
+    mov bx, 0x0000       ; Second 16 bits
+    mov ah, 0x07
+    mov al, 0x20
+
+.loop:
+    cmp bx, 0xFA0
+    jz .reset_screen
+    mov word [es:bx], ax
+    add bx, 2
+    jmp .loop
+
+.reset_screen:
+    mov bx, 0x0000       ; Reset BX to point at the start of the VGA buffer
+    mov cx, 0x0000       ; Counter that will be used for tracking the cursor
+    call set_cursor      ; Calls the set_cursor subroutine to reset it to the start
+    ret
+
+; set_cursor - sets the hardware text cursor position
+; Input:
+;   CX = linear cursor index (0–1999)
+; Clobbers:
+;   AX, DX (preserved internally)
+; Output:
+;   Cursor updated
+set_cursor:
+    push ax
+    push dx
+    ; Set cursor position to the current index of the characters stored in CX
+    ; Select low byte register
+    mov dx, 0x3D4
+    mov al, 0x0F
+    out dx, al
+
+    ; Write low byte
+    inc dx          ; dx = 0x3D5
+    mov al, cl
+    out dx, al
+
+    ; Select high byte register
+    mov dx, 0x3D4
+    mov al, 0x0E
+    out dx, al
+
+    ; Write high byte
+    inc dx
+    mov al, ch
+    out dx, al
+    pop dx
+    pop ax
     ret
 
 buffer: times 20 db 0
