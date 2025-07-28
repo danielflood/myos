@@ -4,7 +4,7 @@ org 0x7C00
 start:
     ;Clear Screen
     call clear_screen
-    
+
     ;Setup the stack
     mov ax, 0x0000       ; Setup stack segment
     mov ss, ax           ; SS == Stack Segment register
@@ -13,6 +13,7 @@ start:
     ;Setup the registers for storing the memory map in buffer
     mov ax, 0x07C0
     mov es, ax
+    mov ax, 0x07C0
     mov ds, ax
     mov di, buffer
     mov si, buffer
@@ -57,24 +58,107 @@ get_memory_map_entry:
 print_memory_map_entry:
     ;Setup VGA
     mov ax, 0xB800       ; VGA Memory first 16bits
-    mov es, ax           ; Have to load into the Extra Segment register (ES) from a general purpose register e.g. AX   
+    mov es, ax           ; Have to load into the Extra Segment register (ES) from a general purpose register e.g. AX 
+    mov ax, 0
+    mov ds, ax  
     mov bx, 0x0000       ; Second 16 bits
     mov dh, 0x07         ; Light grey on black?
-    mov cx, 20
+    
+    push baseStr
+    call .print_string
+    pop ax
 
-.print_entry:
-    lodsb
-    mov dl, al
-    shr dl, 4
-    call .print_hex
-    mov dl, al
-    and dl, 0x0F
-    call .print_hex
-    mov dl, 0x20
-    call .print_char
-    dec cx
-    or cx, cx
-    jnz .print_entry
+    mov ax, 0x07C0
+    mov ds, ax
+
+    push si
+    push 8
+    call .print_memory_chunk
+    pop ax
+    pop ax
+
+    mov ax, 0
+    mov ds, ax  
+
+    push lengthStr
+    call .print_string
+    pop ax
+
+    mov ax, 0x07C0
+    mov ds, ax
+
+    add si, 8
+    push si
+    push 8
+    call .print_memory_chunk
+    pop ax
+    pop ax
+
+    mov ax, 0
+    mov ds, ax  
+
+    push typeStr
+    call .print_string
+    pop ax
+
+    mov ax, 0x07C0
+    mov ds, ax
+
+    add si, 8
+    push si
+    push 4
+    call .print_memory_chunk
+    pop ax
+    pop ax
+
+    ret
+
+.print_string: 
+    push si
+    push bp
+    mov bp, sp
+
+    mov si, [bp+6]
+
+    .loop2:
+        lodsb
+        or al, al
+        jz .end2
+        mov dl, al
+        call .print_char
+        jmp .loop2
+    
+    .end2:
+    pop bp
+    pop si
+    ret
+
+.print_memory_chunk:
+    push si
+    push bp
+    mov bp, sp
+
+    mov cx, [bp + 6] ;arg2: Length of the chunk in bytes
+    mov ax, [bp + 8] ;arg1: Address
+
+    .loop1:
+        mov si, ax
+        add si, cx
+        sub si, 1
+        mov dl, [si]
+        shr dl, 4
+        call .print_hex
+        mov dl, [si]
+        and dl, 0x0F
+        call .print_hex
+        mov dl, 0x20
+        call .print_char
+        dec cx
+        or cx, cx
+        jnz .loop1
+    
+    pop bp
+    pop si
     ret
 
 .print_hex:
@@ -149,6 +233,10 @@ set_cursor:
     ret
 
 buffer: times 20 db 0
+
+baseStr db "Base: ", 0
+lengthStr db "Length: ", 0
+typeStr db "Type: ", 0
 
 times 510 - ($ - $$) db 0 ; Pad the rest with 0s
 dw 0xAA55                 ; Boot signature
