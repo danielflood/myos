@@ -19,7 +19,7 @@ start:
     call get_memory_map_entry
 
     ;Print the entry
-    call print_array
+    call print_memory_map_entry
 
     ;Check if there is anymore data to receive
     ;cmp ebx, 0
@@ -51,18 +51,30 @@ get_memory_map_entry:
     mov edx, 0
     ret
 
-print_array:
+print_memory_map_entry:
     ;Setup VGA
     mov ax, 0xB800       ; VGA Memory first 16bits
     mov es, ax           ; Have to load into the Extra Segment register (ES) from a general purpose register e.g. AX   
     mov bx, 0x0000       ; Second 16 bits
-    mov ah, 0x07         ; Light grey on black?
+    mov dh, 0x07         ; Light grey on black?
     mov cx, 20
 
-.print_hex:
-    lodsb                 ; Load next byte from [SI] into AL
+.print_entry:
+    lodsb
     mov dl, al
     shr dl, 4
+    call .print_hex
+    mov dl, al
+    and dl, 0x0F
+    call .print_hex
+    mov dl, 0x20
+    call .print_char
+    dec cx
+    or cx, cx
+    jnz .print_entry
+    ret
+
+.print_hex:
     cmp dl, 10
     jl .digit
     add dl, 55
@@ -70,26 +82,14 @@ print_array:
     .digit:
     add dl, 48
     .print:
-    mov al, dl
-    mov word [es:bx], ax
-    add bx, 2
-    mov dl, al
-    and dl, 0x0F
-    cmp dl, 10
-    jl .digits
-    add dl, 55
-    jmp .prints
-    .digits:
-    add dl, 48
-    .prints:
-    mov al, dl
-    mov word [es:bx], ax
+    mov word [es:bx], dx
     add bx, 2 
-    dec cx
-    or cx, cx
-    jnz .print_hex
     ret
 
+.print_char:
+    mov word [es:bx], dx
+    add bx, 2 
+    ret
 
 buffer: times 20 db 0
 
