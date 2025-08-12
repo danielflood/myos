@@ -59,17 +59,12 @@ print_memory_map_entry:
     ;Setup VGA
     mov ax, 0xB800       ; VGA Memory first 16bits
     mov es, ax           ; Have to load into the Extra Segment register (ES) from a general purpose register e.g. AX 
-    mov ax, 0
-    mov ds, ax  
     mov bx, 0x0000       ; Second 16 bits
     mov dh, 0x07         ; Light grey on black?
     
-    push baseStr
+    push baseStr - 0x7C00
     call .print_string
     pop ax
-
-    mov ax, 0x07C0
-    mov ds, ax
 
     push si
     push 8
@@ -77,15 +72,9 @@ print_memory_map_entry:
     pop ax
     pop ax
 
-    mov ax, 0
-    mov ds, ax  
-
-    push lengthStr
+    push lengthStr - 0x7C00
     call .print_string
     pop ax
-
-    mov ax, 0x07C0
-    mov ds, ax
 
     add si, 8
     push si
@@ -94,15 +83,9 @@ print_memory_map_entry:
     pop ax
     pop ax
 
-    mov ax, 0
-    mov ds, ax  
-
-    push typeStr
+    push typeStr - 0x7C00
     call .print_string
     pop ax
-
-    mov ax, 0x07C0
-    mov ds, ax
 
     add si, 8
     push si
