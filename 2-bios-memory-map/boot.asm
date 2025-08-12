@@ -13,10 +13,8 @@ start:
     ;Setup the registers for storing the memory map in buffer
     mov ax, 0x07C0
     mov es, ax
-    mov ax, 0x07C0
     mov ds, ax
-    mov di, buffer
-    mov si, buffer
+    mov di, buffer - $$
 
 .loop:
     ;Get the entry
@@ -62,33 +60,31 @@ print_memory_map_entry:
     mov bx, 0x0000       ; Second 16 bits
     mov dh, 0x07         ; Light grey on black?
     
-    push baseStr - 0x7C00
+    push baseStr - $$
     call .print_string
     pop ax
 
-    push si
+    push buffer - $$
     push 8
     call .print_memory_chunk
     pop ax
     pop ax
 
-    push lengthStr - 0x7C00
+    push lengthStr - $$
     call .print_string
     pop ax
 
-    add si, 8
-    push si
+    push buffer + 8 - $$
     push 8
     call .print_memory_chunk
     pop ax
     pop ax
 
-    push typeStr - 0x7C00
+    push typeStr - $$
     call .print_string
     pop ax
 
-    add si, 8
-    push si
+    push buffer + 16 - $$
     push 4
     call .print_memory_chunk
     pop ax
